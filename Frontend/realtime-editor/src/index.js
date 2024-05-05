@@ -6,9 +6,8 @@ import { AuthProvider } from "../src/components/AuthProvider"; // Import with cu
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
-  </React.StrictMode>
 );
