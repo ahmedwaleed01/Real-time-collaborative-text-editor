@@ -38,7 +38,7 @@ const extensions = [
 
 const fetchContent = async (documentId) => {
   const token = localStorage.getItem("token");
-  const res = await axios.get(`http://localhost:8000/dc/view/${documentId}`, {
+  const res = await axios.get(`http://51.103.213.89:8000/dc/view/${documentId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -64,7 +64,7 @@ const TextEditor = () => {
   }, [Document]);
 
   useEffect(() => {
-    const socket = new WebSocket(`ws://localhost:8000/topic`);
+    const socket = new WebSocket(`ws://51.103.213.89:8000/topic`);
     socket.onopen = () => {
       console.log("WebSocket connected");
       const data = { documentId: documentId, content: "" };
