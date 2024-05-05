@@ -17,7 +17,7 @@ export default function Login() {
     console.log(values);
     try {
       const res = await axios.post(
-        "http://51.103.213.89:8000/api/auth/signin",
+        "http://51.103.213.89/api/auth/signin",
         values
       );
       const { token } = res.data;

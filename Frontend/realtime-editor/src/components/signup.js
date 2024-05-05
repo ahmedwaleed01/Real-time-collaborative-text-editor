@@ -19,7 +19,7 @@ export default function Signup() {
   async function handleSubmit(values, { setSubmitting }) {
     try {
       const res = await axios.post(
-        "http://51.103.213.89:8000/api/auth/signup",
+        "http://51.103.213.89/api/auth/signup",
         values
       );
       const { token } = res.data;

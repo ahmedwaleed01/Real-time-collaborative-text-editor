@@ -22,7 +22,7 @@ function CreateDocumentModal({ show, handleClose, onCreate }) {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://51.103.213.89:8000/dc/create",
+        "http://51.103.213.89/dc/create",
         {
           title: values.documentName,
           content: "",

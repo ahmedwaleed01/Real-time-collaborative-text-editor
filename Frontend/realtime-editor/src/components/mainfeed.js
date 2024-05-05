@@ -22,7 +22,7 @@ function App() {
     if (token) {
       try {
         const res = await axios.post(
-          `http://51.103.213.89:8000/dc/share/${selectedDocId}`,
+          `http://51.103.213.89/dc/share/${selectedDocId}`,
           {
             permission: permission.toUpperCase(),
             username: username,
@@ -49,7 +49,7 @@ function App() {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const res = await axios.get(`http://51.103.213.89:8000/dc/viewAll`, {
+        const res = await axios.get(`http://51.103.213.89/dc/viewAll`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -78,7 +78,7 @@ function App() {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const res = await axios.get(`http://51.103.213.89:8000/dc/viewShared`, {
+        const res = await axios.get(`http://51.103.213.89/dc/viewShared`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -116,7 +116,7 @@ function App() {
 
     try {
       const res = await axios.delete(
-        `http://51.103.213.89:8000/dc/delete/${documentId}`,
+        `http://51.103.213.89/dc/delete/${documentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -137,7 +137,7 @@ function App() {
 
     try {
       const res = await axios.put(
-        `http://51.103.213.89:8000/dc/rename/${documentId}`,
+        `http://51.103.213.89/dc/rename/${documentId}`,
         { title: newName },
         {
           headers: {
