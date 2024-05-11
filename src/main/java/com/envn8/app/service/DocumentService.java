@@ -61,11 +61,15 @@ public class DocumentService {
     }
 
     public void insertCharacter(String documentId, int position, String beforeId, String afterId, char character) {
+        System.out.println("ZEMEELYYYYYYYYYyyyyyyyyyyyyyyy "+documentId+" "+position+" "+" "+beforeId+" "+afterId+" "+character);
         Documents document = documentRepository.findById(documentId).orElseThrow();
         String newId = CRDT.generateIdBetween(beforeId, afterId);
         CRDT newElement = new CRDT(character, newId, beforeId, afterId);
+        System.out.println("Yarab"+newElement.getCharacter()+"basha     "+newId);
         document.getContent().add(position, newElement);
         document.getContent().sort(Comparator.comparing(CRDT::getId));
+
+        System.out.println("ETB3 DOCUMENT"+document.getContent());
         documentRepository.save(document);
     }
 

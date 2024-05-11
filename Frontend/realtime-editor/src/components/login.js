@@ -17,7 +17,7 @@ export default function Login() {
     console.log(values);
     try {
       const res = await axios.post(
-        "http://hmamdocs.me/api/auth/signin",
+        process.env.REACT_APP_API_URL + "/auth/signin",
         values
       );
       const { token } = res.data;

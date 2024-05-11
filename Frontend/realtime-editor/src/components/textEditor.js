@@ -20,52 +20,36 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 function getDiff(oldContent, newContent) {
   let position = 0;
-  let beforeId = null;
-  let afterId = null;
 
-  // Find the first position where the old and new content differ
   while (
     position < oldContent.length &&
     oldContent[position] === newContent[position]
   ) {
     position++;
   }
+  let beforeId = oldContent.length === 0 ? "-1" : (position - 1).toString();
+  let afterId = newContent.length === 0 ? newContent[position]?.id : "10000";
 
-  // If the new content is longer, it's an insert operation
   if (newContent.length > oldContent.length) {
     return {
       type: "insert",
       position: position,
       character: newContent[position],
-      beforeId: oldContent[position - 1]?.id,
-      afterId: oldContent[position]?.id,
+      beforeId: beforeId,
+      afterId: afterId,
     };
-  }
-  // If the new content is shorter, it's a delete operation
-  else if (newContent.length < oldContent.length) {
+  } else if (newContent.length < oldContent.length) {
     return {
       type: "delete",
       position: position,
       characterId: oldContent[position]?.id,
-      beforeId: oldContent[position - 1]?.id,
-      afterId: oldContent[position + 1]?.id,
+      beforeId: beforeId,
+      afterId: afterId,
     };
   }
-  // // If the old and new content are the same length, but different, it's a replace operation
-  // else if (newContent.length === oldContent.length && oldContent[position] !== newContent[position]) {
-  //   return {
-  //     type: "replace",
-  //     position: position,
-  //     oldCharacterId: oldContent[position]?.id,
-  //     newCharacter: newContent[position],
-  //     beforeId: oldContent[position - 1]?.id,
-  //     afterId: oldContent[position + 1]?.id,
-  //   };
-  // }
-
-  // If the old and new content are the same, there's no diff
   return null;
 }
+
 const extensions = [
   StarterKit,
   Heading,
@@ -85,11 +69,14 @@ const extensions = [
 
 const fetchContent = async (documentId) => {
   const token = localStorage.getItem("token");
-  const res = await axios.get(`http://hmamdocs.me/api/dc/view/${documentId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await axios.get(
+    process.env.REACT_APP_API_URL + `/dc/view/${documentId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
   return res.data;
 };
 
@@ -104,14 +91,14 @@ const TextEditor = () => {
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState("");
 
-  useEffect(() => {
-    if (Document) {
-      setContent(Document.title);
-    }
-  }, [Document]);
+  // useEffect(() => {
+  //   if (Document) {
+  //     setContent(Document.title);
+  //   }
+  // }, [Document]);
 
   useEffect(() => {
-    const socket = new WebSocket(`ws://hmamdocs.me/api/topic`);
+    const socket = new WebSocket(`ws://localhost:8000/api/topic`);
     // socket.onerror = function(event) {
     //   console.error("WebSocket error observed:", event);
     // };
@@ -122,7 +109,8 @@ const TextEditor = () => {
       socket.send(jsonData);
     };
 
-    socket.onmessage = (event) => { // response from server
+    socket.onmessage = (event) => {
+      // response from server
       console.log("Received data", event.data);
       const eventData = JSON.parse(event.data);
       const content = eventData.content;
@@ -173,7 +161,8 @@ const TextEditor = () => {
   //     socket.send(jsonData);
   //   }
   // };
-  const sendContentToServer = (  // send operation to server
+  const sendContentToServer = (
+    // send operation to server
     operationType,
     position,
     beforeId,
@@ -202,31 +191,30 @@ const TextEditor = () => {
     extensions: extensions,
     content: content,
     onUpdate: ({ editor }) => {
-      const newContent = editor.getHTML();
+      const newContent = editor.getText();
       const diff = getDiff(content, newContent); // need to implement this function
-      if (diff)
-      {
+      if (diff) {
         console.log("Diff= ", diff);
-      if (diff.type === "insert") {
-        sendContentToServer(
-          "insertCharacter",
-          diff.position,
-          diff.beforeId,
-          diff.afterId,
-          diff.character,
-          diff.characterId
-        );
-      } else if (diff.type === "delete") {
-        sendContentToServer(
-          "deleteCharacter",
-          diff.position,
-          diff.beforeId,
-          diff.afterId,
-          diff.character,
-          diff.characterId
-        );
+        if (diff.type === "insert") {
+          sendContentToServer(
+            "insertCharacter",
+            diff.position,
+            diff.beforeId,
+            diff.afterId,
+            diff.character,
+            diff.characterId
+          );
+        } else if (diff.type === "delete") {
+          sendContentToServer(
+            "deleteCharacter",
+            diff.position,
+            diff.beforeId,
+            diff.afterId,
+            diff.character,
+            diff.characterId
+          );
+        }
       }
-    }
       setContent(newContent);
     },
   });

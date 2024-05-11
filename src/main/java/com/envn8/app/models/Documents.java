@@ -105,6 +105,7 @@ public class Documents {
     public void setSharedWith(List<User> sharedWith) {
         this.sharedWith = sharedWith;
     }
+ 
 
     // public Map<String, String> getPermissions() {
     //     return permissions;

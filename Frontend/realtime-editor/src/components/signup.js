@@ -19,7 +19,7 @@ export default function Signup() {
   async function handleSubmit(values, { setSubmitting }) {
     try {
       const res = await axios.post(
-        "http://hmamdocs.me/api/auth/signup",
+        process.env.REACT_APP_API_URL + "/auth/signup",
         values
       );
       const { token } = res.data;

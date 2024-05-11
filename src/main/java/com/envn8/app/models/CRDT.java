@@ -1,27 +1,28 @@
 package com.envn8.app.models;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+
 
 import lombok.AllArgsConstructor;
 @AllArgsConstructor
-@Document
 public class CRDT {
-    @Id
+   
     private String id;
-    @Field
+    
     private char character;
-    @Field
+    
     private String beforeId;
-    @Field
+    
     private String afterId;
-    //constructor
+    public CRDT(){
+
+    }
+
     public CRDT(char character, String id, String beforeId, String afterId) {
         this.character = character;
         this.id = id;
         this.beforeId = beforeId;
         this.afterId = afterId;
+        System.out.println("DAKHEL WLA LSA");
     }
 
     //getters and setters
@@ -49,7 +50,19 @@ public class CRDT {
     public void setAfterId(String afterId) {
         this.afterId = afterId;
     }
+    
+    @Override
+    public String toString() {
+        return "CRDT{" +
+                "id='" + id + '\'' +
+                ", character=" + this.character +
+                ", beforeId='" + this.beforeId + '\'' +
+                ", afterId='" + this.afterId + '\'' +
+          '}';
+    }
+
     public static String generateIdBetween(String beforeId, String afterId) {
+        System.out.println("EH EL KALAAAAAM");
         if (beforeId.equals(afterId)) {
             return beforeId + '0';
         } else if (beforeId.equals("9") && afterId.equals("10")) {

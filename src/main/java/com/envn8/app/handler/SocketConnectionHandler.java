@@ -12,19 +12,31 @@ import com.envn8.app.service.DocumentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-public class SocketConnectionHandler extends TextWebSocketHandler {
-
+@Service
+public class SocketConnectionHandler extends TextWebSocketHandler implements ApplicationContextAware {
     private static final List<WebSocketSession> documentRooms = new ArrayList<WebSocketSession>();
     private Map<String, List<WebSocketSession>> roomSessions = new HashMap<>();
     private DocumentService documentService;
-
+    private ApplicationContext applicationContext;
+    public SocketConnectionHandler(DocumentService documentService) {
+        this.documentService = documentService;
+    }
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        this.documentService = applicationContext.getBean(DocumentService.class);
+    }
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         System.out.println("Connection established");
@@ -68,35 +80,36 @@ public class SocketConnectionHandler extends TextWebSocketHandler {
         roomSessions.get(documentId).add(session);
         if (operation != null) {
             if (operation.get("type").equals("insertCharacter")) {
+                System.out.println("AYwaaa hena ya negm");
                 int position = (int) operation.get("position");
-                char character = (char) operation.get("character");
-                String beforeId = (String) operation.get("beforeId");
-                String afterId = (String) operation.get("afterId");
+                System.out.println("AYwaaa hena ya negm2"+operation.get("character"));
+                String characterObj = (String)operation.get("character");
+    
+                char character= characterObj.charAt(0);
+                System.out.println("AYwaaa hena ya negm3");
+                String  beforeId = (String) operation.get("beforeId");
+        
+                System.out.println("AYwaaa hena ya negm4");
+                String  afterId = (String) operation.get("afterId");;
+                // if(operation.get("afterId")!=null){
+                //     afterId = (String) operation.get("afterId");
+                // }
+                // beforeId ="-1";
+                // afterId="1";
                 // Call the insertCharacter method in the DocumentService
+                System.out.println("AYwaaa hena"+operation.get("type"));
                 documentService.insertCharacter(documentId, position, beforeId, afterId, character);
             } else if (operation.get("type").equals("deleteCharacter")) {
                 String characterId = (String) operation.get("characterId");
                 // Call the deleteCharacter method in the DocumentService
                 documentService.deleteCharacter(documentId, characterId);
             }
-            // other types of operations...
-
-            // Get the updated document content
-            String newContent = documentService.getContent(documentId);
-            // Create a new message with the updated content and the operation
-            Map<String, Object> newMessage = new HashMap<>();
-            newMessage.put("content", newContent);
-            newMessage.put("operation", operation);
-
-            // Convert the new message to a JSON string
-            String newMessageJson = mapper.writeValueAsString(newMessage);
-
-            // Send the new message to all sessions in the room
-            sendMessage(documentId, new TextMessage(newMessageJson));
         } else {
             System.out.println("Operation is null");
         }
+        // sendMessage(documentId, );
     }
+
 
     private void sendMessage(String roomId, TextMessage message) {
         if (roomSessions.containsKey(roomId)) {
