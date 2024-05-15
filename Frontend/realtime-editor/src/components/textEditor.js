@@ -18,35 +18,84 @@ import TextAlign from "@tiptap/extension-text-align";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-class CharacterData {
-  constructor(character, id, bold = false) {
-    this.character = character;
-    this.id = id;
+class Char {
+  constructor(
+    index,
+    charValue,
+    flagDelete,
+    siteID,
+    bold,
+    italic,
+    underline,
+    id
+  ) {
+    this.index = index;
+    this.charValue = charValue;
+    this.flagDelete = flagDelete;
+    this.siteID = siteID;
     this.bold = bold;
+    this.italic = italic;
+    this.underline = underline;
+    this.id = id;
   }
 
-  getCharacter() {
-    return this.character;
+  generateUUID() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        var r = (Math.random() * 16) | 0,
+          v = c == "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
   }
 
-  setCharacter(character) {
-    this.character = character;
+  update(attributes) {
+    if (attributes) {
+      this.bold = attributes.bold || this.bold;
+      this.italic = attributes.italic || this.italic;
+      this.underline = attributes.underline || this.underline;
+    }
   }
 
   getId() {
     return this.id;
   }
 
-  setId(id) {
-    this.id = id;
+  getChar() {
+    return this.charValue;
   }
 
-  isBold() {
+  getIndex() {
+    return this.index;
+  }
+
+  isFlagDelete() {
+    return this.FlagDelete;
+  }
+
+  getSiteID() {
+    return this.siteID;
+  }
+
+  getIsItalic() {
+    return this.italic;
+  }
+
+  getBold() {
     return this.bold;
   }
 
-  setBold(bold) {
-    this.bold = bold;
+  getUnderLine() {
+    return this.underline;
+  }
+
+  setFlagDelete(val) {
+    this.FlagDelete = val;
+  }
+
+  setIndex(index) {
+    this.index = index;
   }
 }
 
@@ -58,8 +107,8 @@ function getDiff(oldContent, newContent) {
   console.log("old content", oldContent);
   console.log("new content", newContent);
   if (oldContent.length == 0) {
-    let first = new CharacterData(newContent[0], 1);
-    charactersData.push(first);
+    // let first = new CharacterData(newContent[0], 1);
+    // charactersData.push(first);
   }
   while (
     position < oldContent.length &&
@@ -138,34 +187,34 @@ const TextEditor = () => {
   const [oldContent, setOldContent] = useState("");
   const [NewContent, setNewContent] = useState("");
   const [DocumentContent, setDocumentContent] = useState("");
+  const [characters, setCharacters] = useState([]);
   const extractContent = (data) => {
+    if (!Array.isArray(data)) {
+      console.error("Expected an array, but received:", typeof data);
+      return;
+    }
+    console.log("Data", data);
     let con = "";
     let contentBegin = "";
 
-    console.log("Data received henaa:", data);
-    if (Array.isArray(data)) {
-      data.forEach((item) => {
-        let notBOf = item.char != "bof" && item.char != "eof";
-        if (notBOf && item.isItalic && item.bold && !item.flagDelete) {
-          con += `<b><i>${item.char}</i></b>`;
-        } else if (notBOf && item.bold && !item.flagDelete) {
-          con += `<b>${item.char}</b>`;
-        } else if (notBOf && item.isItalic && !item.flagDelete) {
-          con += `<i>${item.char}</i>`;
-        } else if (notBOf && item.underLine && !item.flagDelete) {
-          con += `<u>${item.char}</u>`;
-        } else if (notBOf && !item.flagDelete) {
-          con += item.char;
-        }
-        if (notBOf && !item.flagDelete) {
-          contentBegin += item.char;
-        }
-      });
-    } else {
-      console.error("Expected an array, but received:", typeof data);
+    for (let item of data) {
+      if (
+        item.charValue === "bof" ||
+        item.charValue === "eof" ||
+        item.flagDelete
+      )
+        continue;
+
+      let char = item.charValue;
+      if (item.bold) char = `<b>${char}</b>`;
+      if (item.isItalic) char = `<i>${char}</i>`;
+      if (item.underLine) char = `<u>${char}</u>`;
+
+      con += char;
+      contentBegin += item.charValue;
     }
+
     setOldContent(contentBegin);
-    console.log("Content baaaaaaaaaaa", con);
     return con;
   };
 
@@ -198,13 +247,46 @@ const TextEditor = () => {
       const jsonData = JSON.stringify(data);
       socket.send(jsonData);
     };
-
+    let firstTime = true;
     socket.onmessage = (event) => {
-      // response from server
-      console.log("Received data", event.data);
-      const eventData = event.data;
-      setDataToBeSaved(eventData);
-      setData(eventData);
+      const eventData = JSON.parse(event.data); // Parse the incoming JSON data
+      console.log("Event Data", eventData);
+      if (firstTime) {
+        // If this is the first time receiving data, map the data to Char instances
+        const chars = eventData.map(
+          (charData) =>
+            new Char(
+              charData.index,
+              charData.char,
+              charData.flagDelete,
+              charData.siteID,
+              charData.bold,
+              charData.isItalic,
+              charData.underLine,
+              charData.id
+            )
+        );
+        chars.sort((a, b) => a.index - b.index);
+        // Save the array of Char instances
+        setOldContent(extractContent(chars));
+        // console.log("Chars", chars);
+        setCharacters(chars);
+        console.log("First Time Characters", characters);
+        setDataToBeSaved(chars);
+        setData(chars);
+
+        // Set firstTime to false
+        firstTime = false;
+      } else {
+        // Handle subsequent data
+        console.log("before characters", characters);
+        characters.push(eventData);
+        characters.sort((a, b) => a.index - b.index);
+        console.log("Characters", characters);
+        setCharacters(characters);
+        setDataToBeSaved(characters);
+        setData(characters);
+      }
     };
     socket.onerror = (error) => {
       console.error("WebSocket error:", error);
@@ -259,7 +341,7 @@ const TextEditor = () => {
     console.log("Sssssssssssssssssss");
     if (editor) {
       console.log("Sssssssssssssss", data);
-      editor.commands.setContent(extractContent(JSON.parse(data)));
+      editor.commands.setContent(extractContent(data));
       editor?.commands.setTextSelection(cursor);
     }
   }, [data]);
