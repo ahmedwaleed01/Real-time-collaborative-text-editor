@@ -293,7 +293,7 @@ const TextEditor = () => {
   const editor = useEditor({
     extensions: extensions,
     content: DocumentContent,
-    editable: permission!=="VIEWER" && (permission==="OWNER" || permission==="EDITOR"),
+    // editable: editPermission,
     onUpdate: ({ editor }) => {
       const newContent = editor.getText();
       console.log("contenttttttttttt", content, "Sssss", newContent);
@@ -357,8 +357,8 @@ const TextEditor = () => {
             : ''
         )
     }
-      <EditorContent editor={editor} readOnly={permission!=="VIEWER" && (permission==="OWNER" || permission==="EDITOR")} className="border-none" />
-      {/* <EditorContent editor={editor} readOnly={editor.options.editable && editPermission} className="border-none" /> */}
+      {/* <EditorContent editor={editor} className="border-none" /> */}
+      <EditorContent editor={editor} readOnly={!editPermission} className="border-none" />
       {/* {permission ? <EditorContent editor={editor} className="border-none" /> : <div>Determining access permissions, please wait!...</div>} */}
     </div>
   );

@@ -22,7 +22,7 @@ export default function Navbar() {
         </Link>
 
         {!isAuthenticated ? (
-          // ... your code for the not authenticated state
+        
                   <>
             <button
               className="navbar-toggler text-primary me-5"
